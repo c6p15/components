@@ -1,27 +1,40 @@
-import React, { useState , useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 
-const Randomizer = () => {
-    const [coupon, setCoupon] = useState(null);
+const RandomizerPage = () => {
+  const [coupon, setCoupon] = useState(null);
+  const [error, setError] = useState(null);
 
-    const getRandomCoupon = async () => {
-      try {
-          const token = localStorage.getItem('token'); // replace this with the actual token
-          const res = await axios.get('http://localhost:5000/randomizer', {
-              headers: {
-                  Authorization: `Bearer ${token}`
-              }
-          });
+  const handleRandomize = () => {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      setError("User not authenticated. Please log in.");
+      return;
+    }
+
+    // Include the token in the headers
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+
+    // Fetch a random coupon when the button is clicked
+    axios.get('http://localhost:5000/randomizer', { headers })
+      .then(res => {
+        if (res.data.message) {
+          setError(res.data.message);
+        } else {
           setCoupon(res.data);
-      } catch (error) {
-          console.error("Error fetching random coupon", error);
-      }
+          setError(null);
+        }
+      })
+      .catch(err => console.error(err));
   };
-  
 
-return (
+  return (
     <div>
-      <button onClick={getRandomCoupon}>Randomize</button>
+      <h2>Randomizer Page</h2>
+      <button onClick={handleRandomize}>Randomize</button>
       {error ? (
         <p>{error}</p>
       ) : coupon ? (
@@ -38,7 +51,4 @@ return (
   );
 };
 
-
-export default Randomizer;
-
-
+export default RandomizerPage;
